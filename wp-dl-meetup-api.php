@@ -82,7 +82,7 @@ if (!class_exists('DatalookMeetupAPi')) {
 
     private function getNumberOfEvents() {
 
-      $url_events = $this->getUrl(SELF::METHOD_EVENTS, "&group_id=" . urlencode($this->groups_ids));
+      $url_events = $this->getUrl(SELF::METHOD_EVENTS, "&status=past&group_id=" . urlencode($this->groups_ids));
       $info_events = wp_remote_get($url_events);
       $events = json_decode($info_events["body"])->results;
 
@@ -111,6 +111,12 @@ if (!class_exists('DatalookMeetupAPi')) {
 
         $tmpArray["groups_name"] = $item->name;
         $tmpArray["groups_link"] = $item->link;
+
+        $mil = $item->created;
+        $seconds = $mil / 1000;
+        $year = date("Y", $seconds);
+
+        $tmpArray["groups_year_created"] = $year;
         $tmpArray["groups_members"] = $item->members;
 
         $tmpArray["events_number"] = 0;
@@ -128,12 +134,17 @@ if (!class_exists('DatalookMeetupAPi')) {
     {
       if (!empty($this->results)) {
 
-        $html = "<table><th>Name</th><th>Members</th><th>Events</th>";
+        $html = "<table><th style=\"text-align: left; width:55%;\">Name</th>
+                    <th style=\"text-align: center; width:20%;\">Creation year</th>
+                    <th style=\"text-align: center; width:10%;\">Members</th>
+                    <th style=\"text-align: center; width:15%;\">Past events</th>";
         foreach ( $this->results as $item ) {
 
-          $html .= "<tr><td><a href=\"" . $item["groups_link"] . "\" target=\"_blank\">" . $item["groups_name"] . "</td>
-          <td>" . $item["groups_members"] . "</td>
-          <td> " . $item["events_number"] . "</td></tr>";
+          $html .= "<tr>
+          <td style=\"text-align: left; width:55%;\"><a href=\"" . $item["groups_link"] . "\" target=\"_blank\">" . $item["groups_name"] . "</td>
+          <td style=\"text-align: center; width:20%;\">" . $item["groups_year_created"] . "</td>
+          <td style=\"text-align: center; width:10%;\">" . $item["groups_members"] . "</td>
+          <td style=\"text-align: center; width:15%;\"> " . $item["events_number"] . "</td></tr>";
         }
         $html = $html . "</table>";
       }
