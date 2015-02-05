@@ -40,12 +40,16 @@ if (!class_exists('DatalookMeetupAPi')) {
     const METHOD_GROUPS = "2/groups";
     const METHOD_EVENTS = "2/events";
 
+    //@Deprecated use $_key dynamic private attribute instead.
     const KEY = "6172502d70155707241395b42137b45";
+    //@Deprecated use $_groups_ids dynamic private attribute instead.
     const ID_GROUPS = "3926102,4300032,7975692,11057822,11073962,11120692,12977072,16394282,16412132,16412292,18259255";
 
     private $_url;
     private $_results;
     private $_logs;
+    private $_key;
+    private $_groups_ids;
 
     public function __construct()
     {
@@ -54,11 +58,14 @@ if (!class_exists('DatalookMeetupAPi')) {
    #   add_action('init', array(&$this, 'log2'));
       add_shortcode('render_table_meetup_datalook', array(&$this, 'renderTable'));
 
+      $this->api_key = get_option("api_key");
+      $this->groups_ids = get_option("groups_ids");
+
     }
 
     public function log2()
     {
-      echo $this->getUrl(SELF::METHOD_GROUPS, "&group_id=" . urlencode(SELF::ID_GROUPS));
+      echo $this->getUrl(SELF::METHOD_GROUPS, "&group_id=" . urlencode($this->groups_ids));
     }
 
     public function enqueueScript()
@@ -70,12 +77,12 @@ if (!class_exists('DatalookMeetupAPi')) {
     private function getUrl($method, $params)
     {
       return "http://" . SELF::DOMAIN . DIRECTORY_SEPARATOR . $method .
-      DIRECTORY_SEPARATOR . "?key=" . SELF::KEY . $params;
+      DIRECTORY_SEPARATOR . "?key=" . $this->api_key . $params;
     }
 
     private function getNumberOfEvents() {
 
-      $url_events = $this->getUrl(SELF::METHOD_EVENTS, "&group_id=" . urlencode(SELF::ID_GROUPS));
+      $url_events = $this->getUrl(SELF::METHOD_EVENTS, "&group_id=" . urlencode($this->groups_ids));
       $info_events = wp_remote_get($url_events);
       $events = json_decode($info_events["body"])->results;
 
@@ -91,7 +98,7 @@ if (!class_exists('DatalookMeetupAPi')) {
 
     public function getBoardInfo()
     {
-      $url_groups = $this->getUrl(SELF::METHOD_GROUPS, "&group_id=" . urlencode(SELF::ID_GROUPS));
+      $url_groups = $this->getUrl(SELF::METHOD_GROUPS, "&group_id=" . urlencode($this->groups_ids));
       $info_groups = wp_remote_get($url_groups);
       if ($info_groups["response"][code] != 200) {
         print_r("warning. at least one the Ids on meetup plugin is not valid. nothing will show.");

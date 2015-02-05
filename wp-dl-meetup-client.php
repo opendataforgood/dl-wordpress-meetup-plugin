@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Meet up event able from meetup.com
+Plugin Name: Meetup Datalook
 Plugin URI: http://blog.datalook.io/
-Description: Set of groups and meetups with common interest on Datalook
+Description: Given a set of groups Ids print a plain HTML table with the following fields (name of the group, link, number of members,number of past events) from Meetup.com
 Version: 1.0.0
 Author: Vicens Fayos
 Author URI: http://vicensfayos.com
@@ -39,14 +39,30 @@ if(!class_exists('DatalookMeetupClient'))
 
 
     public function __construct() {
+
+      // Initialize Settings
+      require_once(sprintf("%s/wp-dl-settings.php", dirname(__FILE__)));
+      $dataLookMeetupSettings = new DataLookMeetupSettings();
+
       #add_action('init', array(&$this, 'log'));
       require_once(sprintf("%s/wp-dl-meetup-api.php", dirname(__FILE__)));
       $this->_datalookMeetupAPi = new DatalookMeetupAPi();
       #$this->_datalookMeetupAPi->renderTable();
+
+      $plugin = plugin_basename(__FILE__);
+      add_filter("plugin_action_links_$plugin", array( $this, 'plugin_settings_link' ));
     }
 
     function log() {
       echo sprintf("%s/wp-dl-meetup-api.php", dirname(__FILE__));
+    }
+
+    // Add the settings link to the plugins page
+    function plugin_settings_link($links)
+    {
+      $settings_link = '<a href="options-general.php?page=wp_plugin_data_look_template">Settings</a>';
+      array_unshift($links, $settings_link);
+      return $links;
     }
 
   }
